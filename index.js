@@ -1,6 +1,7 @@
 const YTPL = require('ytpl');
 const FS = require('fs');
 const ytdl = require('ytdl-core');
+const ytFromList = require('./ytFromList');
 require('dotenv').config();
 
 const START = parseInt(process.env.START ?? 0);
@@ -10,7 +11,7 @@ let EXACT_LENGTH = 1;
 
 
 async function downloadVideo(yobj) {
-    console.log(yobj.index, '----------', (yobj.index/EXACT_LENGTH)*100,'%')
+    console.log(yobj.index, '----------', (yobj.index / EXACT_LENGTH) * 100, '%')
     FS.access("./" + DIR + "/", FS.constants.F_OK, (err) => {
         // console.log(`${err ? 'does not exist' : 'exists'}`);
         if (err) {
@@ -40,15 +41,13 @@ const syncDownload = (videos) => {
 }
 
 const main = async () => {
-    
-    if (process.env.PLAYLIST_URL == undefined) {
-        console.log("URL not found");
-        return;
-    }
-    let url = new URL(process.env.PLAYLIST_URL);
-    if (url.searchParams.get('list') != undefined) {
-        const search = await YTPL(url.searchParams.get('list'), { limit: END });
-        console.log("Total length - ", search.items.length, "\nStart - ", START, "\nEnd - ",END)
+    const playlistUrl = process.env.PLAYLIST_URL;
+    const fromList = process.env.FROM_LIST;
+
+    if (playlistUrl !== undefined && playlistUrl.includes('https://')) {
+        let plUrl = new URL(process.env.PLAYLIST_URL);
+        const search = await YTPL(plUrl.searchParams.get('list'), { limit: END });
+        console.log("Total length - ", search.items.length, "\nStart - ", START, "\nEnd - ", END)
         EXACT_LENGTH = search.items.length;
         if (DIR == undefined) {
             search.name = search.title.replace(" ", "_");
@@ -58,6 +57,9 @@ const main = async () => {
         }
         FS.writeFileSync(`./${search.name}.json`, JSON.stringify(search));
         syncDownload(search);
+    } else if (fromList !== undefined) {
+        const videosListUrls = fromList.split(', ');
+        ytFromList(videosListUrls)
     }
 };
 main();
