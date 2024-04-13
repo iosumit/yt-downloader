@@ -16,11 +16,11 @@ const main = async () => {
         let urlObj = new URL(PLAYLIST_URL);
         const playlistObj = await YTPL(urlObj.searchParams.get('list'), { limit: END });
 
-        if (DIR == undefined) {
-            playlistObj.name = playlistObj.title.replace(" ", "_");
-            DIR = playlistObj.name;
+        playlistObj.name = playlistObj.title.replace(" ", "_");
+        if (DIR === undefined) {
+            DIR = './' + playlistObj.name + "/";
         } else {
-            playlistObj.name = DIR
+            DIR = DIR + playlistObj.name + '/';
         }
 
         END = Math.min(playlistObj.items.length, END)
@@ -31,7 +31,7 @@ const main = async () => {
                 index: i + 1,
                 title: playlistObj.items[i].title,
                 url: playlistObj.items[i].url,
-                destination: './' + DIR + "/",
+                destination: DIR,
                 start: Date.now()
             })
         }
@@ -41,6 +41,7 @@ const main = async () => {
         for (let i = START; i < END; i++) {
             VIDEOS_QUEUE.push({
                 index: i + 1,
+                destination: DIR,
                 url: listOfUrls[i],
                 start: Date.now()
             })
