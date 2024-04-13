@@ -35,7 +35,7 @@ const showProgress = (chunkLength, downloaded, total, starttime) => {
 
 function downloadHQVideo(obj) {
     return new Promise((resolve, reject) => {
-        const title = obj.index + ". " + (obj.title ?? 'hq_v') + ".mp4";
+        const title = obj.index + ". " + (obj.title ?? 'hq_v') + ".mkv";
         const directory = obj.destination ?? "." + "/HQ_Videos/";
         const _p = path.resolve(directory, escape(title));
 
