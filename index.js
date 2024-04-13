@@ -1,65 +1,71 @@
-const YTPL = require('ytpl');
-const FS = require('fs');
-const ytdl = require('ytdl-core');
-const ytFromList = require('./ytFromList');
+const downloader = require('./downloader');
 require('dotenv').config();
+const YTPL = require('ytpl');
 
+const VIDEOS_QUEUE = []
+const PLAYLIST_URL = process.env.PLAYLIST_URL;
+const FROM_LIST = process.env.FROM_LIST;
+const TYPE = process.env.TYPE;
 const START = parseInt(process.env.START ?? 0);
-const END = parseInt(process.env.END ?? 0);
+let END = parseInt(process.env.END ?? 0);
 let DIR = process.env.DIR;
-let EXACT_LENGTH = 1;
-
-
-async function downloadVideo(yobj) {
-    console.log(yobj.index, '----------', (yobj.index / EXACT_LENGTH) * 100, '%')
-    FS.access("./" + DIR + "/", FS.constants.F_OK, (err) => {
-        // console.log(`${err ? 'does not exist' : 'exists'}`);
-        if (err) {
-            FS.mkdirSync("./" + DIR + "/");
-        }
-        let title = "./" + DIR + "/" + yobj.index + ". " + yobj.title + "";
-        ytdl(yobj.url, {
-            format: 'mp4',
-            filter: 'audioandvideo'
-        }).pipe(FS.createWriteStream(title + '.mp4'));
-    });
-
-}
-
-const syncDownload = (videos) => {
-    console.log("videos - ", videos.items.length);
-
-    let i = START;
-    downloadVideo(videos.items[i++]);
-    let timer = setInterval(() => {
-        downloadVideo(videos.items[i]);
-        i++;
-        if (i >= videos.items.length) {
-            clearInterval(timer)
-        }
-    }, 20 * 1000);
-}
 
 const main = async () => {
-    const playlistUrl = process.env.PLAYLIST_URL;
-    const fromList = process.env.FROM_LIST;
 
-    if (playlistUrl !== undefined && playlistUrl.includes('https://')) {
-        let plUrl = new URL(process.env.PLAYLIST_URL);
-        const search = await YTPL(plUrl.searchParams.get('list'), { limit: END });
-        console.log("Total length - ", search.items.length, "\nStart - ", START, "\nEnd - ", END)
-        EXACT_LENGTH = search.items.length;
+    if (PLAYLIST_URL !== undefined && PLAYLIST_URL.includes('https://')) {
+        let urlObj = new URL(PLAYLIST_URL);
+        const playlistObj = await YTPL(urlObj.searchParams.get('list'), { limit: END });
+
         if (DIR == undefined) {
-            search.name = search.title.replace(" ", "_");
-            DIR = search.name;
+            playlistObj.name = playlistObj.title.replace(" ", "_");
+            DIR = playlistObj.name;
         } else {
-            search.name = DIR
+            playlistObj.name = DIR
         }
-        FS.writeFileSync(`./${search.name}.json`, JSON.stringify(search));
-        syncDownload(search);
-    } else if (fromList !== undefined) {
-        const videosListUrls = fromList.split(', ');
-        ytFromList(videosListUrls)
+
+        END = Math.min(playlistObj.items.length, END)
+        console.log("Total length - ", playlistObj.items.length, "\nStart - ", START, "\nEnd - ", END)
+
+        for (let i = START; i < END; i++) {
+            VIDEOS_QUEUE.push({
+                index: i + 1,
+                title: playlistObj.items[i].title,
+                url: playlistObj.items[i].url,
+                destination: './' + DIR + "/",
+                start: Date.now()
+            })
+        }
+    } else if (FROM_LIST !== undefined) {
+        const listOfUrls = FROM_LIST.split(', ');
+        END = Math.min(listOfUrls.length, END)
+        for (let i = START; i < END; i++) {
+            VIDEOS_QUEUE.push({
+                index: i + 1,
+                url: listOfUrls[i],
+                start: Date.now()
+            })
+        }
     }
+    runQueuedTasks();
 };
+
+function runQueuedTasks() {
+    if (VIDEOS_QUEUE.length > 0) {
+        obj = VIDEOS_QUEUE.shift()
+        switch (TYPE) {
+            case 'HQ':
+                downloader.downloadHQVideo(obj).then(runQueuedTasks)
+                break;
+            case 'AUDIO':
+                downloader.downloadHQAudio(obj).then(runQueuedTasks)
+                break;
+            default:
+                downloader.downloadNormalVideo(obj).then(runQueuedTasks)
+                break;
+        }
+    } else {
+        console.log('ALL VIDEO DONE')
+    }
+}
+
 main();
