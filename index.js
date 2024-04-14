@@ -39,11 +39,13 @@ const main = async () => {
         const listOfUrls = FROM_LIST.split(', ');
         END = Math.min(listOfUrls.length, END)
         for (let i = START; i < END; i++) {
+            const date = Date.now()
             VIDEOS_QUEUE.push({
                 index: i + 1,
+                title: date,
                 destination: DIR,
                 url: listOfUrls[i],
-                start: Date.now()
+                start: date
             })
         }
     }
