@@ -36,7 +36,7 @@ const showProgress = (chunkLength, downloaded, total, starttime) => {
 function downloadHQVideo(obj) {
     return new Promise((resolve, reject) => {
         const title = obj.index + ". " + (obj.title ?? 'hq_v') + ".mkv";
-        const directory = obj.destination ?? "." + "/HQ_Videos/";
+        const directory = (obj.destination ?? "./") + "HQ_Videos/";
         const _p = path.resolve(directory, escape(title));
 
         obj.audio = { downloaded: 0, total: Infinity }
@@ -46,7 +46,7 @@ function downloadHQVideo(obj) {
         try {
             FS.accessSync(directory, FS.constants.F_OK);
         } catch (error) {
-            FS.mkdirSync(directory);
+            FS.mkdirSync(directory, { recursive: true });
         }
 
         const audio = ytdl(obj.url, { quality: 'highestaudio' })
@@ -105,13 +105,13 @@ function downloadHQVideo(obj) {
 function downloadHQAudio(obj) {
     return new Promise((resolve, reject) => {
         const title = obj.index + ". " + (obj.title ?? 'hq_a') + ".mp3";
-        const directory = obj.destination ?? "." + "/HQ_Audios/";
+        const directory = (obj.destination ?? "./") + "HQ_Audios/";
         const _p = path.resolve(directory, escape(title));
 
         try {
             FS.accessSync(directory, FS.constants.F_OK);
         } catch (error) {
-            FS.mkdirSync(directory);
+            FS.mkdirSync(directory, { recursive: true });
         }
 
         const audio = ytdl(obj.url, { quality: 'highestaudio' })
@@ -139,7 +139,7 @@ function downloadHQAudio(obj) {
             ],
         });
         ffmpegProcess.on('close', () => {
-            console.log(`${obj.title} ✅ - ${(Date.now() - obj.start) / 1000}s`);
+            console.log(`${obj.url} ✅ - ${(Date.now() - obj.start) / 1000}s`);
             resolve();
         });
         audio.pipe(ffmpegProcess.stdio[4]);
@@ -149,13 +149,13 @@ function downloadHQAudio(obj) {
 function downloadNormalVideo(obj) {
     return new Promise((resolve, reject) => {
         const title = obj.index + ". " + (obj.title ?? 'n_v') + ".mp4";
-        const directory = obj.destination ?? './Normal_Videos/';
+        const directory = (obj.destination ?? './') + 'Normal_Videos/';
         const _p = path.resolve(directory, escape(title));
 
         try {
             FS.accessSync(directory, FS.constants.F_OK);
         } catch (error) {
-            FS.mkdirSync(directory);
+            FS.mkdirSync(directory, { recursive: true });
         }
 
         const video = ytdl(obj.url, {
