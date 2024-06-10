@@ -16,7 +16,7 @@ const main = async () => {
         let urlObj = new URL(PLAYLIST_URL);
         const playlistObj = await YTPL(urlObj.searchParams.get('list'), { limit: END });
 
-        playlistObj.name = playlistObj.title.replace(" ", "_");
+        playlistObj.name = playlistObj.title.replaceAll(" ", "_");
         if (DIR === undefined) {
             DIR = './' + playlistObj.name + "/";
         } else {
@@ -29,7 +29,7 @@ const main = async () => {
         for (let i = START; i < END; i++) {
             VIDEOS_QUEUE.push({
                 index: i + 1,
-                title: playlistObj.items[i].title,
+                title: playlistObj.items[i].title.replaceAll(" ", "_"),
                 url: playlistObj.items[i].url,
                 destination: DIR,
                 start: Date.now()

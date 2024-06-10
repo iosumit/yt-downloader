@@ -46,7 +46,7 @@ function downloadHQVideo(obj) {
         try {
             FS.accessSync(directory, FS.constants.F_OK);
         } catch (error) {
-            FS.mkdirSync(directory);
+            FS.mkdirSync(directory, { recursive: true });
         }
 
         const audio = ytdl(obj.url, { quality: 'highestaudio' })
@@ -111,7 +111,7 @@ function downloadHQAudio(obj) {
         try {
             FS.accessSync(directory, FS.constants.F_OK);
         } catch (error) {
-            FS.mkdirSync(directory);
+            FS.mkdirSync(directory, { recursive: true });
         }
 
         const audio = ytdl(obj.url, { quality: 'highestaudio' })
@@ -155,7 +155,7 @@ function downloadNormalVideo(obj) {
         try {
             FS.accessSync(directory, FS.constants.F_OK);
         } catch (error) {
-            FS.mkdirSync(directory);
+            FS.mkdirSync(directory, { recursive: true });
         }
 
         const video = ytdl(obj.url, {
