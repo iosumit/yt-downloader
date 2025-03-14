@@ -1,4 +1,4 @@
-const ytdl = require('ytdl-core');
+const ytdl = require('@distube/ytdl-core');
 const cp = require('child_process');
 const readline = require('readline');
 const FS = require('fs');
@@ -34,6 +34,7 @@ const showProgress = (chunkLength, downloaded, total, starttime) => {
 }
 
 function downloadHQVideo(obj) {
+    console.log(obj);
     return new Promise((resolve, reject) => {
         const title = obj.index + ". " + (obj.title ?? 'hq_v') + ".mkv";
         const directory = (obj.destination ?? "./") + "HQ_Videos/";
